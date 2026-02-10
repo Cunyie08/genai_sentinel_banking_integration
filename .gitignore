@@ -5,7 +5,7 @@ __pycache__/
 *.so
 .Python
 env/
-venv/
+.venv/
 ENV/
 
 # IDE
@@ -21,3 +21,4 @@ ENV/
 # Logs
 *.log
 logs/
+sentinel_bank.db
