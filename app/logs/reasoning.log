@@ -1,3 +1,0 @@
-# This contains the readable reasoning traces{"timestamp": "2026-02-08T23:51:02.649458", "agent": "DispatcherAgent", "payload": {"intent": "fraud_suspected", "department": "FRAUD_TEAM", "confidence": 0.9, "reasoning": "Transaction appears unauthorized based on complaint."}}
-{"timestamp": "2026-02-08T23:51:02.650198", "agent": "Orchestrator", "payload": {"from_agent": "DispatcherAgent", "to_agent": "sentinel_agent", "department": "FRAUD_TEAM"}}
-{"timestamp": "2026-02-08T23:51:02.650906", "agent": "SentinelAgent", "payload": {"risk_level": "high", "decision": "transaction_flagged", "reasoning": "Stub: fraud logic to be implemented in Week 2"}}

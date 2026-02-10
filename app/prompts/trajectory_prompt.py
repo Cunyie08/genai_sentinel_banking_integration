@@ -1,1 +1,0 @@
-# This file conatains the personalization logic
