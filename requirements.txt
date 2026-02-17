@@ -4,3 +4,6 @@ langchain_core
 faker
 python-dateutil
 pydantic
+chromadb
+sentence_transformers
+torch
