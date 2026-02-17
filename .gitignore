@@ -1,5 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
 .env
-.venv
-a_venv
-app\logs\reasoning.log
-system_architecture_banking_.pdf
+.env.local
+
+# Logs
+*.log
+logs/
+sentinel_bank.db
