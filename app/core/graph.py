@@ -29,7 +29,7 @@ class AgentGraph:
             dispatch_decision is the output from the DispatcherAgent, expected to contain a department key
 
         Returns:
-            A string with the Name of the agent to handle the next tas    
+            A string with the Name of the agent to handle the next task    
             
         """  
         # Extract the department from the dispatcher ouput
@@ -41,4 +41,6 @@ class AgentGraph:
             "dispatcher_agent")
         
         return next_agent
+
+
 

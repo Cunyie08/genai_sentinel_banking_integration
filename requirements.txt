@@ -1,3 +1,6 @@
 langgraph
 langchain_openai
 langchain_core
+faker
+numpy
+pandas
