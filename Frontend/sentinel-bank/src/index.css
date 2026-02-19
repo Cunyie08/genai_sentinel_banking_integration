@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  /* Sentinel Brand Colors */
+  --color-sentinel-dark: #0f172a;   /* Slate 900 */
+  --color-sentinel-card: #1e293b;   /* Slate 800 */
+  --color-sentinel-accent: #10b981; /* Emerald 500 */
+  --color-sentinel-alert: #ef4444;  /* Red 500 */
+  --color-sentinel-text: #f8fafc;   /* Slate 50 */
+  
+  /* Mobile Simulator Colors */
+  --color-mobile-bg: #f1f5f9;       /* Slate 100 */
+  --color-mobile-header: #2563eb;   /* Blue 600 */
+
+  /* Fonts */
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", sans-serif;
+}
+
+/* Global Reset */
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-sentinel-dark);
+  color: var(--color-sentinel-text);
+  overflow: hidden; /* Prevent full-page scroll */
+}
+
+/* Utility for hiding scrollbars but allowing scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
