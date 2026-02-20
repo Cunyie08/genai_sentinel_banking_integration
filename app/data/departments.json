@@ -1,0 +1,172 @@
+{
+  "banking_departments": [
+    {
+      "department_name": "Retail Banking",
+      "description": "Handles individual customers and everyday banking services",
+      "roles": [
+        "Account Opening Officer",
+        "Customer Service Officer",
+        "Relationship Officer (Retail)",
+        "Branch Operations Officer",
+        "Teller"
+      ],
+      "services": [
+        "Savings Accounts",
+        "Current Accounts",
+        "Joint Accounts",
+        "ATM & Card Services",
+        "USSD and Mobile Banking Support"
+      ]
+    },
+    {
+      "department_name": "Corporate Banking",
+      "description": "Manages large corporate clients and institutional customers",
+      "roles": [
+        "Corporate Relationship Manager",
+        "Credit Analyst",
+        "Trade Finance Officer",
+        "Account Manager"
+      ],
+      "services": [
+        "Corporate Accounts",
+        "Trade Finance",
+        "Large-Value Transfers",
+        "Project Financing"
+      ]
+    },
+    {
+      "department_name": "SME Banking",
+      "description": "Supports small and medium-scale enterprises",
+      "roles": [
+        "SME Relationship Manager",
+        "Business Development Officer",
+        "Credit Risk Officer"
+      ],
+      "services": [
+        "SME Accounts",
+        "Business Loans",
+        "POS Merchant Services",
+        "Payroll Services"
+      ]
+    },
+    {
+      "department_name": "Operations",
+      "description": "Ensures smooth day-to-day bank operations and transaction processing",
+      "roles": [
+        "Operations Manager",
+        "Clearing Officer",
+        "Funds Transfer Officer",
+        "Reconciliation Officer"
+      ],
+      "services": [
+        "Transaction Processing",
+        "Interbank Settlements",
+        "NIBSS Transfers",
+        "End-of-Day Reconciliation"
+      ]
+    },
+    {
+      "department_name": "Electronic Banking",
+      "description": "Manages digital banking channels",
+      "roles": [
+        "E-Banking Officer",
+        "Channel Support Analyst",
+        "Digital Products Manager"
+      ],
+      "services": [
+        "Mobile Banking",
+        "Internet Banking",
+        "USSD Banking",
+        "POS & ATM Management"
+      ]
+    },
+    {
+      "department_name": "Risk Management",
+      "description": "Identifies, assesses, and mitigates financial and operational risks",
+      "roles": [
+        "Risk Analyst",
+        "Fraud Monitoring Officer",
+        "Operational Risk Officer"
+      ],
+      "services": [
+        "Fraud Detection",
+        "Transaction Monitoring",
+        "Risk Scoring",
+        "Policy Enforcement"
+      ]
+    },
+    {
+      "department_name": "Compliance & AML",
+      "description": "Ensures regulatory compliance and anti-money laundering controls",
+      "roles": [
+        "Compliance Officer",
+        "AML Analyst",
+        "KYC Officer"
+      ],
+      "services": [
+        "KYC Verification",
+        "BVN & NIN Validation",
+        "Suspicious Transaction Reporting",
+        "CBN Regulatory Reporting"
+      ]
+    },
+    {
+      "department_name": "Information Technology",
+      "description": "Supports banking systems and infrastructure",
+      "roles": [
+        "Core Banking Application Support",
+        "Database Administrator",
+        "System Administrator",
+        "Cybersecurity Analyst"
+      ],
+      "services": [
+        "Core Banking Systems",
+        "System Uptime",
+        "Data Security",
+        "Infrastructure Management"
+      ]
+    },
+    {
+      "department_name": "Internal Audit",
+      "description": "Provides independent assurance on internal controls",
+      "roles": [
+        "Internal Auditor",
+        "Control Assurance Officer"
+      ],
+      "services": [
+        "Process Audits",
+        "Transaction Reviews",
+        "Fraud Investigation Support"
+      ]
+    },
+    {
+      "department_name": "Treasury",
+      "description": "Manages liquidity, investments, and funding",
+      "roles": [
+        "Treasury Manager",
+        "Liquidity Analyst",
+        "Investment Officer"
+      ],
+      "services": [
+        "Liquidity Management",
+        "Fixed Deposit Products",
+        "Interbank Lending",
+        "Investment Management"
+      ]
+    },
+    {
+      "department_name": "Human Resources",
+      "description": "Manages staffing and employee welfare",
+      "roles": [
+        "HR Manager",
+        "Recruitment Officer",
+        "Training & Development Officer"
+      ],
+      "services": [
+        "Recruitment",
+        "Staff Training",
+        "Performance Management"
+      ]
+    }
+  ]
+}
