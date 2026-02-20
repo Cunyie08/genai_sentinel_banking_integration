@@ -9,13 +9,23 @@ This module handles:
 - Embedding model configuration
 - Persistence settings
 
+CHANGELOG v2:
+  - Added DOCUMENT_REGISTRY: maps all 6 document IDs to category,
+    agent_target, version, title, and doc_type_flag — consumed by
+    ingest_documents.py to tag every chunk with routing metadata,
+    enabling per-agent filtered retrieval in rag_query.py
+  - Added reset_all_collections(): wipes all three collections in one
+    call, used by ingest_documents.py before a full re-ingestion run
+  - Added document_count to default collection metadata
+
 Author: AI Engineer 2 (Security & Knowledge Specialist)
+Date: February 2026
 """
 
 import chromadb
 from chromadb.utils import embedding_functions
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict         # ← added Dict
 import logging
 
 # Configure logging
@@ -24,6 +34,76 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# DOCUMENT REGISTRY  ← NEW
+# =============================================================================
+# Maps every document ID to its pipeline metadata.
+# Keys MUST match:
+#   - document_id values from policy_generator._package_for_rag()
+#   - .txt filenames produced by BankingPolicyGenerator.save_all_policies()
+#
+# Consumed by ingest_documents.py so every ChromaDB chunk is tagged with:
+#   category, agent_target, version, title, doc_type_flag
+#
+# doc_type_flag drives collection routing in the ingester:
+#   "policy"         → COLLECTION_POLICIES  (+ COLLECTION_ALL)
+#   "knowledge_base" → COLLECTION_FAQS      (+ COLLECTION_ALL)
+#
+# agent_target enables per-agent filtered retrieval in rag_query.py, e.g.:
+#   collection.query(..., where={"agent_target": "Sentinel"})
+
+DOCUMENT_REGISTRY: Dict[str, Dict] = {
+    "POL-CCH-001": {
+        "title":         "Customer Complaint Handling Policy",
+        "category":      "policy",
+        "version":       "2.1",
+        "agent_target":  "Dispatcher",
+        "doc_type_flag": "policy",
+        "description":   "Department routing rules, SLA hours, escalation matrix",
+    },
+    "FRM-001": {
+        "title":         "Fraud Detection & Prevention Guidelines",
+        "category":      "security",
+        "version":       "4.0",
+        "agent_target":  "Sentinel",
+        "doc_type_flag": "policy",
+        "description":   "Red flags, risk scoring 0–100, push-to-app authorization",
+    },
+    "TSU-POL-002": {
+        "title":         "Transaction Processing Policies",
+        "category":      "operations",
+        "version":       "4.0",
+        "agent_target":  "All",
+        "doc_type_flag": "policy",
+        "description":   "KYC tier limits, fee schedule, reversal policies",
+    },
+    "FAQ-001": {
+        "title":         "Customer Service Frequently Asked Questions",
+        "category":      "knowledge_base",
+        "version":       "2.0",
+        "agent_target":  "Customer",
+        "doc_type_flag": "knowledge_base",
+        "description":   "Customer-facing self-service answers",
+    },
+    "FRM-002": {
+        "title":         "Merchant Risk Profiles",
+        "category":      "security",
+        "version":       "1.0",
+        "agent_target":  "Sentinel",
+        "doc_type_flag": "policy",
+        "description":   "Per-category merchant risk weights and velocity rules",
+    },
+    "PRS-001": {
+        "title":         "Product Recommendation Policy",
+        "category":      "policy",
+        "version":       "1.0",
+        "agent_target":  "Trajectory",
+        "doc_type_flag": "policy",
+        "description":   "Car Loan / Personal Loan / Investment Plan eligibility",
+    },
+}
 
 
 class ChromaDBConfig:
@@ -102,7 +182,6 @@ class ChromaDBConfig:
 
         return client
 
-    
     def get_or_create_collection(self, 
                                  client: chromadb.Client, 
                                  collection_name: str,
@@ -124,9 +203,10 @@ class ChromaDBConfig:
         # Default metadata
         if metadata is None:
             metadata = {
-                "description": f"Banking documents collection: {collection_name}",
+                "description":     f"Banking documents collection: {collection_name}",
                 "embedding_model": self.EMBEDDING_MODEL,
-                "distance_metric": self.DISTANCE_METRIC
+                "distance_metric": self.DISTANCE_METRIC,
+                "document_count":  str(len(DOCUMENT_REGISTRY)),  # ← NEW
             }
         
         try:
@@ -165,6 +245,22 @@ class ChromaDBConfig:
         # Recreate the collection
         self.get_or_create_collection(client, collection_name)
         logger.info(f"Reset collection: {collection_name}")
+
+    def reset_all_collections(self, client: chromadb.Client):  # ← NEW
+        """
+        Reset all three collections in one call.
+
+        Call this before a full re-ingestion run to prevent duplicate chunks
+        accumulating across multiple ingest_documents.py executions.
+
+        Args:
+            client: ChromaDB client instance
+        """
+        for name in [self.COLLECTION_POLICIES,
+                     self.COLLECTION_FAQS,
+                     self.COLLECTION_ALL]:
+            self.reset_collection(client, name)
+        logger.info("All collections reset and ready for fresh ingestion")
 
 
 def initialize_chromadb() -> tuple:
@@ -208,9 +304,9 @@ def get_collection_stats(collection) -> dict:
             sample_metadata = {}
         
         stats = {
-            "name": collection.name,
+            "name":            collection.name,
             "total_documents": count,
-            "metadata": collection.metadata,
+            "metadata":        collection.metadata,
             "sample_metadata": sample_metadata
         }
         
@@ -231,8 +327,15 @@ if __name__ == "__main__":
     # Initialize ChromaDB
     print("Initializing ChromaDB...")
     client, config = initialize_chromadb()
-    print(f"✓ Client created with persistence at: {config.persist_directory}\n")
-    
+    print(f" Client created with persistence at: {config.persist_directory}\n")
+
+    # Display document registry  ← NEW
+    print(f"Document Registry ({len(DOCUMENT_REGISTRY)} documents):")
+    for doc_id, meta in DOCUMENT_REGISTRY.items():
+        print(f"  {doc_id:<14}  category={meta['category']:<14}  "
+              f"agent={meta['agent_target']:<12}  v{meta['version']}")
+    print()
+
     # Test collection creation
     print("Testing collection creation...")
     test_collection = config.get_or_create_collection(
@@ -240,14 +343,14 @@ if __name__ == "__main__":
         "test_collection",
         metadata={"test": "This is a test collection"}
     )
-    print(f"✓ Collection '{test_collection.name}' ready\n")
+    print(f" Collection '{test_collection.name}' ready\n")
     
     # Test embedding function
     print("Testing embedding function...")
     embedding_fn = config.get_embedding_function()
     test_text = "This is a test sentence for embedding"
     embedding = embedding_fn([test_text])[0]
-    print(f"✓ Embedding generated (dimension: {len(embedding)})\n")
+    print(f" Embedding generated (dimension: {len(embedding)})\n")
     
     # Display collection stats
     print("Collection Statistics:")
@@ -258,11 +361,11 @@ if __name__ == "__main__":
     # Cleanup test collection
     print("\nCleaning up test collection...")
     client.delete_collection("test_collection")
-    print("✓ Test collection deleted")
+    print(" Test collection deleted")
     
     print("\n" + "="*70)
     print(" "*15 + "CHROMADB CONFIGURATION TEST COMPLETE!")
     print("="*70)
     print("\nChromaDB is ready for document ingestion.")
-    print("Next step: Run ingest_documents.py to load banking policies")
+    print("Next step: Run ingest_documents.py to load all 6 banking policies")
     print("="*70 + "\n")
