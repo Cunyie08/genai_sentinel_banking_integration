@@ -2,689 +2,195 @@
 Sentinel Bank Nigeria - CUSTOMER SERVICE FAQ
 =========================================================================
 
-**Document ID**: FAQ-001
-**Version**: 2.0
-**Last Updated**: February 2026
-**Classification**: Public (Customer-Facing)
+Document ID     : FAQ-001
+Version         : 2.0
+Last Updated    : February 2026
+Classification  : Public — Customer-Facing & Agent Reference
 
 
 =========================================================================
 SECTION 1: TRANSFER & PAYMENT ISSUES
 =========================================================================
 
-Q1: My transfer was debited but the receiver didn't get the money. 
-    What should I do?
----------------------------------------------------------------------------
-A: This is usually a temporary delay in the interbank network. Here's 
-   what to do:
+Q1: My transfer was debited but the receiver did not get the money.
+─────────────────────────────────────────────────────────────────────────
+A: This usually indicates a temporary NIBSS network delay or a failed
+   interbank transaction (transaction_status = "failed" or "timeout").
 
-   1. Wait 2 hours first (most delays resolve automatically)
-   2. Check your transaction history for the transaction reference number
-   3. Confirm the account number you sent to (verify with recipient)
-   4. If still not received after 2 hours:
-      - Contact us with your transaction reference
-      - We can track it through NIBSS (Nigeria Inter-Bank Settlement System)
-      - We will resolve within 48 hours
-   5. If money doesn't reach within 24 hours:
-      - Automatic reversal will occur
-      - You'll get SMS notification when credited back
+   Step 1: Wait 2 hours — most delays self-resolve via auto-reversal.
+   Step 2: Check your transaction history in the app for the reference number
+           (format: TXN + 12 digits).
+   Step 3: Confirm the beneficiary account number and bank with the recipient.
+   Step 4: If still unresolved after 2 hours, contact us with your
+           transaction reference. We will trace it via NIBSS.
+   Step 5: If not received within 24 hours, automatic reversal is triggered
+           and you will receive an SMS confirmation.
 
-   **Important**: Keep your transaction reference number handy!
-   Format: NIP/240217/1234567890
+   Common failure reasons to quote when reporting:
+     - network_error → NIBSS unreachable during transfer
+     - system_timeout → Switch did not respond in time
+     - issuer_unavailable → Destination bank system was offline
 
+Q2: I sent money to the wrong account. Can it be reversed?
+─────────────────────────────────────────────────────────────────────────
+A: Reversal is NOT automatic for wrong-account transfers. Here is the process:
 
-Q2: Why was my transfer to another bank delayed?
----------------------------------------------------------------------------
-A: Inter-bank transfers use the NIBSS network which can have delays during:
+   Step 1: Contact the recipient directly and request voluntary refund.
+   Step 2: If unsuccessful, contact our Transaction Services Unit (TSU)
+           with evidence: screenshot of intended vs. actual account number.
+   Step 3: TSU will formally request recall from the beneficiary's bank.
+   Step 4: Recovery takes 2–14 days depending on beneficiary cooperation.
 
-   **Peak Traffic Periods**:
-   - Month-end (25th-30th): Salary payment days
-   - First week of month: Rent payment period
-   - Friday evenings: High transaction volume
+   REVERSAL NOT POSSIBLE if: recipient has already withdrawn the funds.
+   Use the "Name Enquiry" feature before every transfer to verify the
+   account name matches your intended recipient.
 
-   **Network Maintenance**:
-   - Usually announced in advance
-   - Typically done between 2 AM - 6 AM
-   - Check our app for maintenance notifications
+Q3: What are my daily transfer limits?
+─────────────────────────────────────────────────────────────────────────
+A: Limits depend on your KYC tier and account type:
+     Tier 1 (basic savings, phone + name only)   : ₦50,000/day
+     Tier 2 (savings/solo, BVN + NIN linked)     : ₦200,000/day
+     Tier 3 (current account, full KYC)           : ₦5,000,000/day
 
-   **Public Holidays**:
-   - Processing resumes next business day
-   - Transactions submitted on Friday evening may process Monday morning
-
-   **Normal Processing Time**: 2-5 minutes
-   **Acceptable Delay**: Up to 2 hours during peak periods
-   **Beyond 2 hours**: Please report to us for investigation
-
-   **Pro Tip**: For urgent transfers, send before 3 PM on weekdays.
-
-
-Q3: I sent money to the wrong account number. Can you reverse it?
----------------------------------------------------------------------------
-A: Unfortunately, we CANNOT automatically reverse transfers sent to the 
-   wrong account. Here's why and what you can do:
-
-   **Why We Can't Auto-Reverse**:
-   - Once money enters the recipient's account, only they can return it
-   - Banking regulations don't allow forced reversals
-   - Recipient has legal right to the funds (until proven otherwise)
-
-   **What You Should Do**:
-   Step 1: Contact the recipient IMMEDIATELY
-           - Call or text the phone number linked to that account
-           - Explain the error and request a refund
-           - Many people are honest and will refund
-
-   Step 2: If recipient refuses or is unreachable:
-           - Report to us with evidence:
-             * Screenshot of wrong account number entered
-             * Proof of your intended recipient
-             * Any communication with wrong recipient
-           - We will contact the recipient's bank
-           - Recovery process can take 14-21 days
-
-   Step 3: Legal action (last resort):
-           - If recipient refuses despite bank's intervention
-           - You can file a civil case for recovery
-           - Keep all evidence (transaction receipts, messages)
-
-   **PREVENTION TIP**: 
-   Always use the "Name Enquiry" feature before sending money!
-   - Enter account number
-   - System shows you the account name
-   - VERIFY it matches your intended recipient
-   - Then proceed with transfer
-
-
-Q4: What is the maximum amount I can transfer per day?
----------------------------------------------------------------------------
-A: It depends on your account KYC (Know Your Customer) tier:
-
-   **Tier 1 (Basic)**: ₦50,000 per day
-   - Requirements: Name + Phone number only
-   - Limited features
-
-   **Tier 2 (Intermediate)**: ₦200,000 per day
-   - Requirements: Tier 1 + BVN + NIN
-   - Mobile app access
-
-   **Tier 3 (Full KYC)**: ₦5,000,000 per day
-   - Requirements: Tier 2 + Address proof + ID + Utility bill
-   - Full banking services
-
-   **How to Upgrade Your Account**:
-   Visit any branch with:
-   - Valid ID (Driver's license, International passport, Voter's card, NIN)
-   - Utility bill (NEPA, LAWMA, water bill - not older than 3 months)
-   - BVN (if not already captured)
-   - Passport photograph
-
-   **Processing Time**: Same day (if you visit before 2 PM)
+   If exceeded: failure_reason = "daily_transaction_limit_exceeded"
+   To upgrade: Visit any branch with valid photo ID + utility bill.
 
 
 =========================================================================
 SECTION 2: CARD ISSUES
 =========================================================================
 
-Q5: Why was my card declined even though I have money in my account?
----------------------------------------------------------------------------
-A: Cards can be declined for MANY reasons. Here are the most common:
+Q4: Why was my card declined even though I have sufficient balance?
+─────────────────────────────────────────────────────────────────────────
+A: Common reasons for card decline at POS or ATM:
 
-   **1. International Transaction (Card Not Enabled)**
-   - Your card is disabled for foreign transactions by default
-   - Enable it in the app: Cards → Manage Card → International ON
-   - Set your travel dates (auto-disables when you return)
+   1. INTERNATIONAL TRANSACTIONS DISABLED (default state)
+      Enable in app: Cards → Manage Card → International Transactions ON.
+      Set travel start and end dates.
 
-   **2. Insufficient Funds (Including Pending Transactions)**
-   - Check your AVAILABLE balance (not just book balance)
-   - You may have pending transactions not yet visible
-   - Example: Hotel pre-authorization holds funds for 3-7 days
+   2. DAILY LIMIT EXCEEDED
+      POS limit : ₦500,000/day (all cards combined)
+      ATM limit : ₦100,000/day (standard) or ₦200,000 (premium)
+      Resets at midnight.
 
-   **3. Daily Limit Exceeded**
-   - POS limit: ₦500,000 per day
-   - ATM limit: ₦100,000 per day (standard) or ₦200,000 (premium)
-   - Limit resets at midnight
+   3. INCORRECT PIN (3 wrong attempts = auto-lock for 24 hours)
+      Reset via app or call Customer Care.
 
-   **4. Security Block**
-   - Suspicious activity detected (multiple failed PIN attempts)
-   - Card temporarily blocked for your protection
-   - Contact us to unblock
+   4. MERCHANT CATEGORY BLOCKED
+      Betting, gambling, crypto exchanges are blocked by default.
+      Contact us to enable specific categories.
 
-   **5. Expired Card**
-   - Check expiry date (MM/YY format on your card)
-   - Request new card if expired
+   5. SECURITY HOLD (suspicious activity detected)
+      Fraud engine applied risk block. Contact us to verify identity
+      and unblock. failure_reason = "suspected_fraud" in system logs.
 
-   **6. Incorrect PIN**
-   - After 3 wrong PIN attempts, card auto-locks for 24 hours
-   - Do NOT keep trying (makes it worse)
-   - Reset your PIN via app or call us
+Q5: The ATM did not dispense cash but my account was debited.
+─────────────────────────────────────────────────────────────────────────
+A: This is a dispense error on channel = "atm". Standard protocol:
 
-   **7. Merchant Category Blocked**
-   - Betting/gambling sites blocked by default (can be enabled)
-   - Some international merchants blocked (contact us to allow)
-
-   **8. Technical Issue with Merchant's Terminal**
-   - Try a different POS terminal
-   - Or pay with transfer instead
-
-   **What to Do If Declined**:
-   - Check available balance in app
-   - Verify card expiry date
-   - Try a different merchant/terminal if possible
-   - If still declining, contact us: 0700-SENTINEL
-
-
-Q6: The ATM didn't give me cash but my account shows debit. What do I do?
----------------------------------------------------------------------------
-A: This is called a "dispense error" or "ATM reversal case". Here's the 
-   exact procedure:
-
-   **IMMEDIATE ACTIONS** (Do this NOW):
-   1. DO NOT retry the same ATM immediately
-      (It will debit you again!)
-
-   2. Note these details:
-      - Exact ATM location (bank name, branch, street address)
-      - Time of transaction (check your SMS alert)
-      - Amount you tried to withdraw
-      - Your account number
-
-   3. Check if ATM printed a receipt
-      - If yes: Keep it safely (it's evidence)
-      - If no: No problem, we can still help
-
-   **WHAT HAPPENS NEXT**:
-   - Contact us within 24 hours (CRITICAL for quick resolution)
-   - We initiate terminal reconciliation:
-     * Count cash remaining in ATM
-     * Compare with transaction records
-     * If cash count shows your money still in machine → Reversal approved
-   
-   - Automatic reversal usually happens within 24-48 hours
-   - You'll get SMS: "₦X has been credited back to your account. 
-     Reference: REV/240217/XXXX. Sorry for the inconvenience."
-
-   **IF DELAY OCCURS**:
-   - For complex cases: We may issue temporary credit while investigating
-   - Maximum investigation time: 7 days
-   - 90% of dispense errors are reversed within 24 hours
-
-   **STATISTICS** (So you know this is normal):
-   - Dispense errors: ~0.01% of ATM transactions
-   - Successful reversal rate: 99.8%
-   - Average reversal time: 18 hours
-
-
-Q7: How do I enable my card for international transactions?
----------------------------------------------------------------------------
-A: For security, international transactions are DISABLED by default.
-   Here's how to enable:
-
-   **METHOD 1: Via Mobile App** (Easiest)
-   1. Open Sentinel Bank app
-   2. Login with your password/biometric
-   3. Tap "Cards" menu at bottom
-   4. Select the card you want to enable
-   5. Tap "Manage Card"
-   6. Toggle "International Transactions" to ON (green)
-   7. Set your travel dates:
-      - Travel start date
-      - Travel end date
-      - Card will auto-disable when you return (for your security)
-   8. Done! Card is now active for international use
-
-   **METHOD 2: Via Customer Service**
-   1. Call 0700-SENTINEL (0700-736-8463)
-   2. Request international activation
-   3. Provide:
-      - Card number (last 4 digits)
-      - Travel destination
-      - Travel dates
-   4. Representative will enable within 5 minutes
-   5. You'll get SMS confirmation
-
-   **IMPORTANT NOTES**:
-   - Some countries require additional verification
-     (We may request your flight itinerary for compliance)
-   
-   - Monthly FX limit: $500 equivalent for personal cards
-     (Enough for most vacations)
-   
-   - Charges: 
-     * Transaction is debited in Naira at current exchange rate
-     * Rate: CBN rate + 3% markup
-     * Example: $100 purchase = ₦150,000 (if rate is ₦1,500/$)
-   
-   - Common destinations with no issues:
-     * UK, USA, Canada, Dubai, South Africa, Ghana
-   
-   - Countries with frequent declines:
-     * China (use Alipay instead)
-     * Some Asian countries (inform us before travel)
-
-   **PRO TIP**: Enable 2-3 days before travel, not at the airport!
-
-
-Q8: My card is stuck in the ATM. What should I do?
----------------------------------------------------------------------------
-A: Card retention happens due to:
-   - Multiple wrong PIN attempts (3+ times)
-   - Suspicious activity detected by fraud system
-   - Card reported lost/stolen (and you forgot)
-   - Technical malfunction of ATM
-
-   **IMMEDIATE STEPS**:
-   1. Call our Customer Care IMMEDIATELY: 0700-SENTINEL
-      - We will block the card instantly (prevent unauthorized use)
-      - Generate incident report
-   
-   2. Provide ATM details:
-      - Bank name and branch (e.g., "GTBank, Ikeja branch")
-      - ATM location (inside bank or outside?)
-      - Time of retention
-   
-   3. Choose retrieval OR replacement:
-      
-      **OPTION A: Card Retrieval** (If you need that specific card)
-      - Visit the bank branch where ATM is located
-      - Bring valid ID
-      - Card can usually be retrieved same day (if during banking hours)
-      - Some banks keep retained cards for 7 days, then destroy
-      
-      **OPTION B: Card Replacement** (Easier for most people)
-      - Request new card (takes 3-5 business days)
-      - Fee: ₦1,500 for standard card
-      - Old card will be deactivated
-      - New card number (you'll need to update subscriptions)
-   
-   4. If you need cash urgently while waiting:
-      - Visit any of our branches
-      - Bring valid ID
-      - We can process counter withdrawal
-      - Or issue temporary ATM card (₦500, valid for 7 days)
-
-   **PREVENTION**:
-   - Remember your PIN correctly
-   - Don't share your PIN with anyone
-   - If you forget PIN, reset it BEFORE going to ATM
+   IMMEDIATE: Note ATM location, exact time, amount, and any receipt.
+              Do NOT retry the same ATM.
+   REPORT: Contact us within 24 hours with ATM details.
+   RESOLUTION: Auto-reversal within 24–48 hours after terminal
+               reconciliation confirms the dispense error.
+   SUCCESS RATE: 99.8% of ATM dispense errors are successfully reversed.
 
 
 =========================================================================
 SECTION 3: MOBILE APP & DIGITAL BANKING
 =========================================================================
 
-Q9: I can't log into the mobile app. What's wrong?
----------------------------------------------------------------------------
-A: Common causes and solutions:
+Q6: I cannot log into the mobile app.
+─────────────────────────────────────────────────────────────────────────
+A: Troubleshoot in this order:
 
-   **WRONG PASSWORD**
-   - Symptom: "Invalid credentials" message
-   - Solution: Use "Forgot Password" option
-     * Reset link sent to registered email
-     * New password must be 8+ characters
-     * Must include: number, uppercase letter, symbol
-     * Cannot reuse last 3 passwords
+   WRONG PASSWORD        → Use "Forgot Password" (reset link to email).
+   OUTDATED APP VERSION  → Update via Play Store / App Store.
+   NETWORK ISSUE         → Toggle airplane mode off/on. Switch between
+                           WiFi and mobile data. Clear app cache.
+   ACCOUNT LOCKED        → 3 wrong password attempts locks for 30 minutes.
+                           Call Customer Care for immediate unlock.
+   NEW DEVICE            → OTP sent to registered phone to verify new device.
 
-   **OUTDATED APP VERSION**
-   - Symptom: App crashes on opening OR "Update required" message
-   - Solution: 
-     * Android: Open Play Store → My Apps → Sentinel Bank → Update
-     * iOS: Open App Store → Updates → Sentinel Bank → Update
-   - Important: Sometimes old versions are disabled for security
-   - Always keep app updated!
+   If still unable to log in after all steps → Route complaint to DCS.
 
-   **NETWORK ISSUES**
-   - Symptom: "Cannot connect to server" OR endless loading
-   - Solution:
-     * Check your internet connection (try opening browser)
-     * Switch between WiFi and mobile data
-     * Try airplane mode ON for 10 seconds, then OFF
-     * Clear app cache: Phone Settings → Apps → Sentinel Bank → Clear Cache
+Q7: I am not receiving OTPs.
+─────────────────────────────────────────────────────────────────────────
+A: Check in this order:
 
-   **ACCOUNT LOCKED**
-   - Symptom: "Account temporarily locked" message
-   - Cause: 3 wrong password attempts
-   - Solution: 
-     * Account auto-unlocks after 30 minutes
-     * OR call Customer Care for immediate unlock
-     * OR use "Forgot Password" to reset
-
-   **DEVICE CHANGED**
-   - Symptom: "Verify your identity" OR "OTP required"
-   - Cause: First login on new device (security feature)
-   - Solution:
-     * OTP sent to registered phone number
-     * Enter OTP to verify
-     * Device will be remembered for future logins
-   - If not receiving OTP: Call us to verify phone number on file
-
-
-Q10: I'm not receiving OTPs. How can I fix this?
----------------------------------------------------------------------------
-A: Try these steps IN ORDER:
-
-   **STEP 1: VERIFY PHONE NUMBER**
-   - Call Customer Care: 0700-SENTINEL
-   - Confirm: "What phone number do you have on file for my account?"
-   - Problem: Sometimes number gets unlinked after SIM replacement
-   - Solution: Update number if incorrect (requires branch visit with ID)
-
-   **STEP 2: CHECK NETWORK COVERAGE**
-   - Ensure you have signal (check signal bars)
-   - Try moving to area with better reception
-   - Switch to different network if dual SIM
-
-   **STEP 3: CHECK MESSAGE INBOX**
-   - OTP might be in spam/junk folder
-   - Some phones block messages from shortcodes
-   - Check "Blocked messages" in your SMS app
-   - Look for sender: "SENTINEL" or "SBNK"
-
-   **STEP 4: RESTART PHONE**
-   - Simple restart often resolves stuck messages
-   - Hold power button → Restart
-   - Wait 1 minute, try requesting OTP again
-
-   **STEP 5: ALTERNATIVE AUTHENTICATION**
-   - Try email OTP (if available for your transaction)
-   - Use hardware token (if you have one)
-   - Call Customer Care for phone-based verification
-
-   **STEP 6: VISIT BRANCH** (If all else fails)
-   - Bring valid ID
-   - Update phone number with proper verification
-   - May require additional KYC documentation
-   - Processing time: 15-30 minutes
-
-   **FOR IPHONE USERS**:
-   - Check: Settings → Messages → Filter Unknown Senders
-   - If enabled, OTP may be hidden
-   - Disable filter or check "Unknown Senders" folder
-
-   **FOR ANDROID USERS**:
-   - Check: Messages app → Menu → Spam & Blocked
-   - OTP may be marked as spam
-   - Mark sender as "Not spam"
+   1. Verify registered phone number is correct (call Customer Care).
+   2. Check network signal and mobile data.
+   3. Check SMS spam/blocked messages folder. Sender: "SENTINEL" or "SBNK".
+   4. Restart phone.
+   5. For iPhone: Settings → Messages → Filter Unknown Senders → disable.
+   6. Request email OTP as alternative (if available for your transaction).
+   7. Visit branch with valid ID to update registered phone number if incorrect.
 
 
 =========================================================================
 SECTION 4: FRAUD & SECURITY
 =========================================================================
 
-Q11: I received a call from someone claiming to be from the bank asking 
-     for my PIN. Is this real?
----------------------------------------------------------------------------
-A: **NO! THIS IS 100% A SCAM.**
+Q8: Someone is claiming to be from Sentinel Bank and asking for my PIN.
+─────────────────────────────────────────────────────────────────────────
+A: THIS IS A SCAM. Sentinel Bank will NEVER ask for your PIN, password,
+   OTP, or any authentication credential via phone, email, or SMS.
 
-   **What We NEVER Do**:
-   ❌ We NEVER ask for your PIN via phone
-   ❌ We NEVER ask for your password via phone
-   ❌ We NEVER ask for your OTP via phone, email, or SMS
-   ❌ We NEVER ask you to send money to "verify" your account
-   ❌ We NEVER ask you to install remote access apps (TeamViewer, AnyDesk)
-   ❌ We NEVER threaten immediate account closure to pressure you
-   ❌ We NEVER ask you to move money to a "safe account"
+   WHAT TO DO IF YOU SHARED YOUR CREDENTIALS:
+   Step 1: Change password immediately in app: Settings → Change Password.
+   Step 2: Block your card: Cards → Block Card.
+   Step 3: Call our OFFICIAL number: 0700-SENTINEL.
+   Step 4: Email: fraud-desk@sentinelbank.ng with scammer details.
+   Step 5: Monitor transactions hourly for next 24 hours.
 
-   **If You Shared Your PIN/OTP/Password**:
-   ⚠️ ACT IMMEDIATELY (Every second counts!):
-   
-   1. Change your password RIGHT NOW
-      - In the app: Menu → Settings → Change Password
-      - Choose a strong, unique password
-   
-   2. Block your card
-      - In the app: Cards → Block Card
-      - This stops any card transactions immediately
-   
-   3. Call our OFFICIAL number: 0700-SENTINEL
-      - Do NOT call any number the scammer provided
-      - Do NOT use number from the "bank email" you received
-      - Use the number on the back of your debit card
-      - Or find it on our official website
-   
-   4. Report the fraud
-      - Email: fraud-desk@sentinelbank.ng
-      - Provide: Scammer's phone number, what they said, what you shared
-   
-   5. Monitor your account
-      - Check transaction history every hour for next 24 hours
-      - Report any unauthorized transactions immediately
-
-   **How to Verify If a Call Is Really From Us**:
-   - Hang up and call our official number yourself
-   - We will never be offended if you verify
-   - Real bank staff will UNDERSTAND and APPRECIATE your caution
-   - Scammers will get angry or pressure you (red flag!)
-
-   **Common Scam Tactics** (Be Aware):
-   - "Your account will be closed today if you don't act now!"
-   - "We detected suspicious activity. Verify with your PIN."
-   - "You've won a prize! Send ₦5,000 to claim."
-   - "Your BVN needs update. Send your OTP to complete."
-   - "I'm from CBN/EFCC. We need your account details."
-
-   **REMEMBER**: 
-   We will NEVER pressure you to act immediately!
-   If someone is rushing you, it's a scam. Hang up.
-
-
-Q12: How do I know if a transaction notification is real?
----------------------------------------------------------------------------
-A: **Genuine Bank Alerts Look Like This**:
-
-   ✅ **From Official Sender ID**: "SENTINEL" or our registered shortcode
-   ✅ **Specific Transaction Details**:
-      - Exact amount debited/credited: "₦15,000.00"
-      - Transaction time: "17/02/2026 2:45 PM"
-      - Your current account balance: "Bal: ₦1,234,567.89"
-      - Transaction type: "POS", "Transfer", "ATM", "Bill Payment"
-      - Last 4 digits of your account: "...1234"
-   ✅ **Professional Language**: No typos, proper grammar
-   ✅ **Never Includes Links**: Real alerts don't ask you to click anything
-   ✅ **Never Requests Information**: No "Reply with your PIN", etc.
-
-   **Example of REAL Alert**:
-   ```
-   SENTINEL: Debit Alert
-   Amt: NGN25,000.00
-   Desc: POS Purchase - Shoprite Ikeja
-   Bal: NGN1,456,789.12
-   17Feb26 14:23
-   Acct: ...4567
-   ```
-
-   **Fake Alert Warning Signs**:
-   ❌ **Random Sender ID**: "BANKNG", "ALERT", "9876543210"
-   ❌ **Vague Details**: "Your account has been debited" (no amount shown)
-   ❌ **Poor Grammar**: "You account was debitted" (typos)
-   ❌ **Clickable Links**: "Click here to reverse transaction"
-   ❌ **Urgent Action Required**: "Reply STOP to reverse"
-   ❌ **Requests Information**: "Send your PIN to confirm"
-   ❌ **Wrong Balance**: Shows balance you never had
-
-   **Example of FAKE Alert**:
-   ```
-   BANKNG: Alert!!!
-   Your account has been debited. 
-   Click https://fake-link.com to stop this 
-   transaction now!!!
-   ```
-
-   **When In Doubt**:
-   1. Login to your mobile app to verify (do NOT click links in SMS!)
-   2. Check transaction history in app
-   3. Call our official number: 0700-SENTINEL
-   4. Visit nearest branch
-
-   **What Scammers Hope For**:
-   - You panic and click the link (installs malware)
-   - You reply with sensitive information
-   - You send money to "reverse" a fake transaction
-   - You call the scammer's number (more social engineering)
-
-   **Pro Tip**: 
-   Save our official alert sender ID in your contacts as "Sentinel Bank REAL"
-   Then you can quickly identify fake senders.
+   THINGS WE WILL NEVER ASK FOR: PIN, password, OTP, "safe account" transfer,
+   remote access app installation (TeamViewer, AnyDesk).
 
 
 =========================================================================
 SECTION 5: ACCOUNT SERVICES
 =========================================================================
 
-Q13: How do I request my bank statement?
----------------------------------------------------------------------------
-A: Multiple options available depending on your needs:
+Q9: How do I request a bank statement?
+─────────────────────────────────────────────────────────────────────────
+A: Options by channel:
+   Mobile App (FREE for last 90 days) : Statements → Select date range →
+                                        Download PDF or Excel.
+   Email request                       : statements@sentinelbank.ng.
+                                         Include: name, account number,
+                                         date range, delivery email.
+                                         Fee: ₦50/month requested.
+                                         Response: Within 24 hours.
+   USSD (*737*7#)                      : Last 5 transactions only. Free.
+   Branch visit                        : Any period including historical.
+                                         Fee: ₦100/month. Same-day ready.
 
-   **OPTION 1: Mobile App** (Fastest, Recommended)
-   - Open Sentinel Bank app
-   - Tap "Statements" menu
-   - Select date range:
-     * Last 30 days (instant)
-     * Last 90 days (instant)
-     * Custom date range
-   - Choose format:
-     * PDF (for printing/email)
-     * Excel/CSV (for analysis)
-   - Download to your phone OR email to yourself
-   - Cost: FREE for last 90 days!
+Q10: Why am I being charged monthly fees?
+─────────────────────────────────────────────────────────────────────────
+A: Standard charges that may appear on your account:
 
-   **OPTION 2: Email Request**
-   - Send email to: statements@sentinelbank.ng
-   - Include in your email:
-     * Your full name (as in bank records)
-     * Account number
-     * Date range needed (e.g., "January 2025 to December 2025")
-     * Reason for request (optional but helps us serve you better)
-     * Preferred email address for delivery (if different from sender)
-   - Response time: Within 24 hours (business days)
-   - Fee: ₦50 per month requested
-     * Example: 6 months statement = ₦300
-     * Debited from your account
+   Account maintenance (savings)     : ₦50/month (waived if balance ≥ ₦100,000)
+   Account maintenance (current)     : ₦300/month
+   SMS transaction alerts            : ₦4 per alert (mandatory, CBN requirement)
+   USSD sessions (*737#)             : ₦6.98 per session
+   ATM withdrawals (other banks)     : ₦65 per withdrawal
+   ATM withdrawals (own bank, >3/mo) : ₦65 per withdrawal
 
-   **OPTION 3: USSD Code** (For Basic Info)
-   - Dial *737*7# from your registered phone number
-   - Shows last 5 transactions only (not full statement)
-   - Useful for quick reference
-   - Free
-
-   **OPTION 4: Branch Visit**
-   - Visit any Sentinel Bank branch nationwide
-   - Bring valid ID
-   - Can request any historical period (even 10 years ago!)
-   - Choose:
-     * Immediate collection (printed, collect same day)
-     * Email delivery (sent within 1 hour)
-   - Fee: ₦100 per month (charged once regardless of pages)
-   - Processing time: 15-30 minutes (if you wait at branch)
-
-   **Common Reasons for Statement Requests**:
-   - Visa application (embassy requires bank statement)
-   - Loan application
-   - Auditing/accounting purposes
-   - Dispute resolution (prove you paid)
-   - Personal financial planning
-
-   **Pro Tips**:
-   - For visa applications: Request 6 months statement
-   - For loans: Request 3-12 months depending on lender requirement
-   - Save statements monthly (helps with taxes, budgeting)
-
-
-Q14: Why am I being charged monthly service fees?
----------------------------------------------------------------------------
-A: Let's break down all the charges you might see:
-
-   **ACCOUNT MAINTENANCE CHARGES**:
-   
-   Savings Account:
-   - Monthly fee: ₦50
-   - Waived if: You maintain minimum balance of ₦100,000
-   - Why charged: Account upkeep, system maintenance, customer support
-   
-   Current Account:
-   - Monthly fee: ₦300
-   - Commission on Turnover (COT): ₦1 per ₦1,000 on third-party deposits
-     (Applies to business transactions only)
-   - Why charged: Higher operational cost, business banking services
-
-   **OTHER MONTHLY CHARGES** (These Are Separate):
-   
-   SMS Alerts:
-   - Rate: ₦4 per alert
-   - Frequency: EVERY transaction (debit or credit)
-   - Cannot be opted out (CBN requirement for security)
-   - Average monthly: ₦120 (if you have 30 transactions/month)
-   - Why charged: Telco costs, SMS gateway fees
-
-   USSD Banking:
-   - Rate: ₦6.98 per session
-   - Example: If you use *737# 10 times/month = ₦69.80
-   - Shared with telco (they get ₦4, we get ₦2.98)
-   - Why charged: USSD infrastructure cost
-
-   ATM Withdrawals:
-   - Own bank ATMs: First 3 free, then ₦65 per withdrawal
-   - Other bank ATMs: ₦65 per withdrawal (all transactions)
-   - Example: 8 ATM withdrawals at other banks = ₦520
-   - Why charged: ATM maintenance, cash management, networking fees
-
-   **HOW TO MINIMIZE CHARGES**:
-   
-   For Savings Account:
-   - Keep balance above ₦100,000 → ₦50 maintenance waived
-   - Use first 3 ATM withdrawals wisely → Save ₦65 each
-   - Reduce unnecessary transactions → Fewer SMS alerts
-   
-   For Current Account:
-   - Consolidate transactions → Fewer COT charges
-   - Use online banking (free) instead of USSD → Save ₦6.98 per session
-   - Maintain transaction discipline
-
-   **TO VIEW YOUR CHARGES**:
-   - In mobile app: Transactions → Filter by "Charges"
-   - Monthly statement: Charges section shows breakdown
-   - For questions about specific charge: Visit branch with statement
-
-   **CHARGES YOU SHOULD NEVER SEE** (Report if you do):
-   - Unexplained "miscellaneous charges"
-   - Charges for transactions you didn't make
-   - Double-charging (same charge appears twice)
-   - Charges higher than published rates
-
-   If you see unexpected charges, contact us immediately!
+   If you see a charge not listed above, report it to Account Operations
+   Department (AOD) immediately with your statement reference.
 
 
 =========================================================================
-CONTACT INFORMATION
+SECTION 6: CONTACT INFORMATION
 =========================================================================
 
-**24/7 Customer Care Hotline**:
-  - Nigeria: 0700-SENTINEL (0700-736-8463)
-  - International: +234-1-SENTINEL
-  - WhatsApp: +234-901-000-0000 (Text only, no calls)
-
-**Email Support** (Response within 24 hours):
-  - General inquiries: customercare@sentinelbank.ng
-  - Fraud reports: fraud-desk@sentinelbank.ng (24/7 monitoring)
-  - Complaints: complaints@sentinelbank.ng
-
-**Branch Locations**:
-  - Visit: www.sentinelbank.ng/branches
-  - Or use in-app branch locator: Menu → Find Branch
-
-**Social Media** (Verified Accounts Only):
-  - Twitter: @SentinelBankNG ✓
-  - Facebook: /SentinelBankNigeria ✓
-  - Instagram: @sentinelbankng ✓
-  - (Beware of fake accounts! Look for blue checkmark)
-
-**Banking Hours**:
-  - Monday-Friday: 8:00 AM - 4:00 PM
-  - Saturday: Selected branches, 9:00 AM - 1:00 PM
-  - Sunday: Closed (but online banking works 24/7!)
-
-**Emergency After-Hours**:
-  - Card blocking: Available 24/7 via app or hotline
-  - Fraud reporting: fraud-desk@sentinelbank.ng (24/7 response)
+24/7 Customer Care     : 0700-SENTINEL (0700-736-8463)
+Fraud Emergency        : fraud-desk@sentinelbank.ng (24/7 monitoring)
+Complaints             : complaints@sentinelbank.ng
+Statement Requests     : statements@sentinelbank.ng
+Branch Locator         : In-app → Find Branch
+Banking Hours          : Mon–Fri 8:00 AM – 4:00 PM
+                         Saturday (selected branches): 9:00 AM – 1:00 PM
 
 
 =========================================================================
