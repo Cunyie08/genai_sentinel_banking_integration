@@ -7,3 +7,4 @@ pydantic
 chromadb
 sentence_transformers
 torch
+pandas

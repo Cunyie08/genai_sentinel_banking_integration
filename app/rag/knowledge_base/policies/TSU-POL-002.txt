@@ -2,526 +2,288 @@
 Sentinel Bank Nigeria - TRANSACTION PROCESSING & LIMITS POLICY
 =========================================================================
 
-**Document ID**: TSU-POL-002
-**Version**: 4.0
-**Effective Date**: January 2026
-**Classification**: Internal Use Only
+Document ID     : TSU-POL-002
+Version         : 4.0
+Effective Date  : January 2026
+Classification  : Internal Use Only — AI Agent Operational Reference
 
-**Policy Custodian**: Head of Transaction Services
-**Last Review**: February 2026
-**Next Review**: May 2026
-
-
-=========================================================================
-SECTION 1: KYC TIERING & TRANSACTION CAPACITY
-=========================================================================
-
-The Middleware must enforce these limits deterministically to comply with
-Anti-Money Laundering (AML) regulations and CBN directives.
-
-
-TIER 1 ACCOUNTS (Basic KYC)
----------------------------------------------------------------------------
-**Requirements**: Name + Phone number only
-
-**Limits**:
-  - Daily Transaction Limit: ₦50,000
-  - Maximum Account Balance: ₦300,000
-  - Cumulative Monthly Limit: ₦200,000
-
-**Channels Allowed**:
-  - USSD banking (*737# codes)
-  - Agent banking (via registered agents)
-  - Basic internal transfers
-  - Bill payments (utilities, airtime)
-
-**Restrictions**:
-  - NO international transactions
-  - NO high-value merchant payments (>₦50,000)
-  - NO loan eligibility
-  - NO card issuance
-  - NO cheque books
-
-**Typical Customer Profile**: "Ayo" - unbanked person onboarding via agent
-
-
-TIER 2 ACCOUNTS (Intermediate KYC)
----------------------------------------------------------------------------
-**Requirements**: Tier 1 + BVN + NIN (National Identity Number)
-
-**Limits**:
-  - Daily Transaction Limit: ₦200,000
-  - Maximum Account Balance: ₦500,000
-  - Cumulative Monthly Limit: ₦2,000,000
-
-**Channels Allowed**:
-  - All Tier 1 channels
-  - Mobile banking app
-  - Internet banking
-  - POS transactions
-  - ATM withdrawals
-
-**Restrictions**:
-  - International transfers BLOCKED
-  - Investment products restricted
-  - Loan amounts capped at ₦500,000
-
-**Typical Customer Profile**: "Tunde" - Young professional with BVN
-
-
-TIER 3 ACCOUNTS (Full KYC)
----------------------------------------------------------------------------
-**Requirements**: Tier 2 + Address Verification + Valid Photo ID + 
-                  Utility Bill (not older than 3 months)
-
-**Limits**:
-  - Daily Transaction Limit: ₦5,000,000
-  - Maximum Account Balance: Unlimited
-  - Cumulative Monthly Limit: Unlimited
-
-**Channels Allowed**:
-  - All channels including international
-  - SWIFT transfers
-  - Trade finance
-  - Treasury products
-
-**Benefits**:
-  - Full banking services
-  - Loan and credit eligibility (up to ₦50M depending on assessment)
-  - Investment products access
-  - Private banking services (if balance >₦10M)
-
-**Typical Customer Profile**: "Fatima" - Business owner with full documentation
+Policy Custodian : Head of Transaction Services
+Last Review      : February 2026
+Next Review      : May 2026
 
 
 =========================================================================
-SECTION 2: STATUTORY LEVIES & FISCAL TAXES (2026 SCHEDULE)
+SECTION 1: TRANSACTION STATUS DEFINITIONS
 =========================================================================
 
-These are MANDATORY deductions remitted to the Federal Government.
-They are NOT optional and apply to ALL customers.
+The transaction_status field in transactions.csv can hold the following
+values. Every downstream agent must understand what each status means
+before making a routing or response decision.
 
+STATUS: successful
+  Definition   : Transaction completed without error. Funds moved as
+                 intended. No agent action required unless customer disputes.
+  failure_reason: "none"
+  Agent Action  : No action. Send standard confirmation alert.
+
+STATUS: failed
+  Definition   : Transaction was initiated but could not be completed due
+                 to a system, network, or compliance error. The debit was
+                 NOT applied (or will be auto-reversed within 24 hours).
+  failure_reason: insufficient_fund | network_error | system_failure |
+                  system_timeout | invalid_account_number |
+                  daily_transaction_limit_exceeded | compliance_restriction |
+                  suspected_fraud | issuer_unavailable
+  Agent Action  : Route to TSU. Priority = High if amount > ₦100,000.
+
+STATUS: reversed
+  Definition   : Transaction was initially processed but subsequently
+                 reversed. Funds returned to originating account.
+  failure_reason: varies (often "network_error" or "system_failure")
+  Agent Action  : Route to TSU if customer disputes the reversal.
+
+STATUS: pending
+  Definition   : Transaction submitted but not yet processed. Awaiting
+                 network confirmation or authorization step.
+  Agent Action  : Monitor. Escalate to TSU if pending > 30 minutes.
+
+STATUS: timeout
+  Definition   : Transaction was not completed within the network timeout
+                 window. System could not confirm success or failure.
+  failure_reason: "system_timeout"
+  Agent Action  : Route to TSU. Priority = High (may or may not have debited).
+
+STATUS: queued
+  Definition   : Transaction received and queued for batch processing.
+                 Common for scheduled payments and bulk transfers.
+  Agent Action  : No immediate action. Notify customer of expected processing
+                  time.
+
+STATUS: processing
+  Definition   : Transaction is actively being processed by the payment
+                 switch. Intermediate state before "successful" or "failed."
+  Agent Action  : No action. Monitor for final status update.
+
+
+=========================================================================
+SECTION 2: KYC TIERING & TRANSACTION LIMITS
+=========================================================================
+
+TIER 1 — BASIC KYC
+  Account Types     : savings (newly onboarded, limited KYC)
+  Requirements      : Name + Phone number only
+  Daily Tx Limit    : ₦50,000
+  Max Balance       : ₦300,000
+  Monthly Limit     : ₦200,000
+  Channels Allowed  : ussd, branch, nibss_transfer (low value only)
+  Restrictions      : NO international transactions
+                      NO card issuance
+                      NO loans
+  failure_reason if exceeded: "daily_transaction_limit_exceeded"
+                               OR "compliance_restriction"
+
+TIER 2 — INTERMEDIATE KYC
+  Account Types     : savings + solo (for ages 16–30)
+  Requirements      : Tier 1 + BVN + NIN
+  Daily Tx Limit    : ₦200,000
+  Max Balance       : ₦500,000
+  Monthly Limit     : ₦2,000,000
+  Channels Allowed  : mobile_app, ussd, atm, pos, web, branch,
+                      nibss_transfer
+  Restrictions      : NO international transfers
+                      Investment products restricted
+                      Loans capped at ₦500,000
+
+TIER 3 — FULL KYC
+  Account Types     : current (full banking, business-grade)
+  Requirements      : Tier 2 + Address verification + Valid photo ID
+                      + Utility bill (< 3 months old)
+  Daily Tx Limit    : ₦5,000,000
+  Max Balance       : Unlimited
+  Monthly Limit     : Unlimited
+  Channels Allowed  : ALL channels including international SWIFT
+  Benefits          : Full product suite, loans up to ₦50,000,000,
+                      investment products, private banking (if balance
+                      consistently > ₦10,000,000)
+
+
+=========================================================================
+SECTION 3: STATUTORY LEVIES (MANDATORY — CANNOT BE WAIVED)
+=========================================================================
 
 Electronic Money Transfer Levy (EMTL)
----------------------------------------------------------------------------
-**Rate**: Flat ₦50.00 charge
-**Applied to**: Electronic RECEIPTS ≥₦10,000
-**Direction**: Inbound (when YOU receive money)
-**Examples**:
-  - You receive ₦15,000 salary → ₦50 EMTL deducted
-  - You receive ₦5,000 gift → No EMTL (below threshold)
-**Legal Basis**: Stamp Duties Act 2020 (as amended)
-
+  Rate         : Flat ₦50.00
+  Applied to   : Inbound (CREDIT) transactions ≥ ₦10,000
+  Direction    : Deducted from recipient (you receive ₦X, ₦50 deducted)
+  Legal Basis  : Stamp Duties Act 2020
 
 National Cybersecurity Levy
----------------------------------------------------------------------------
-**Rate**: 0.5% (0.005) of transaction value
-**Applied to**: OUTBOUND electronic transfers
-**Direction**: Outbound (when YOU send money)
-**Examples**:
-  - You send ₦100,000 → ₦500 Cybersecurity Levy
-  - You send ₦10,000 → ₦50 Cybersecurity Levy
-**Legal Basis**: Cybercrimes Act 2024 (Section 44)
-**Exemptions**: 
-  - Internal transfers (within same bank)
-  - Loan disbursements
-  - Salary payments (by companies)
-
+  Rate         : 0.5% of transaction value
+  Applied to   : Outbound (DEBIT) electronic transfers
+  Example      : Send ₦100,000 → Cybersecurity levy = ₦500
+  Legal Basis  : Cybercrimes Act 2024 (Section 44)
+  Exemptions   : Internal transfers (same bank), salary payroll,
+                 loan disbursements
 
 Value Added Tax (VAT)
----------------------------------------------------------------------------
-**Rate**: 7.5%
-**Applied to**: Bank's COMMISSION/FEE (not principal amount)
-**Examples**:
-  - Transfer fee is ₦50 → VAT is ₦3.75 (7.5% of ₦50)
-  - Principal amount is NOT subject to VAT
-**Legal Basis**: Finance Act 2021
-
-
-IMPORTANT NOTES:
-- These charges are LEGALLY MANDATED
-- Bank only remits to government (does not retain)
-- Charges are AUTO-DEDUCTED (customer cannot opt out)
-- Charges are SEPARATE from bank's own fees
+  Rate         : 7.5% applied to BANK FEES only (not principal)
+  Example      : NIP fee = ₦50 → VAT = ₦3.75
+  Note         : Principal amount is NOT subject to VAT
 
 
 =========================================================================
-SECTION 3: INTERNATIONAL FX OPERATIONS (TRADE PORTAL)
+SECTION 4: CHANNEL-SPECIFIC TRANSACTION RULES
 =========================================================================
 
-Outbound foreign transfers are processed through the Central Bank Trade
-Monitoring System (TRMS). Strict documentation requirements apply.
+CHANNEL: mobile_app
+  Daily Limit       : Up to Tier limit
+  OTP Required      : For amounts > ₦50,000 (Tier 2 and above)
+  Push Challenge    : For amounts > ₦200,000 OR fraud flag present
+  Device Binding    : Transactions from unrecognized device → mobile_channel_risk flag
 
+CHANNEL: ussd
+  Daily Limit       : ₦50,000 (Tier 1 cap applies across all USSD sessions)
+  Fee               : ₦6.98 per USSD session
+  OTP               : Not applicable (PIN-based authentication only)
 
-Invisible Trade (Form A)
----------------------------------------------------------------------------
-**Purpose**: For services, not physical goods
-**Common Uses**:
-  - School fees (tuition payments abroad)
-  - Medical treatment abroad
-  - Personal Travel Allowance (PTA) - up to $4,000/quarter
-  - Business Travel Allowance (BTA) - up to $5,000/quarter
-  - Subscriptions (Netflix, Spotify, software licenses)
+CHANNEL: atm
+  Daily Withdrawal Limit  : ₦100,000 (standard) | ₦200,000 (premium)
+  Per-Transaction Max     : ₦40,000 per withdrawal (most ATMs)
+  Fee (own bank ATMs)     : First 3 free per month, then ₦65 each
+  Fee (other bank ATMs)   : ₦65 per transaction (no free tier)
+  Dispense Error Protocol : If ATM debits but does not dispense cash:
+                            auto-reversal within 24 hours after reconciliation
+  failure_reason if no funds: "insufficient_fund"
+  failure_reason if limit exceeded: "daily_transaction_limit_exceeded"
 
-**Documentation Required**:
-  - Proof of purpose (school admission letter, medical report, etc.)
-  - Valid means of ID
-  - Tax Clearance Certificate (for amounts >$10,000)
+CHANNEL: pos
+  Daily Limit          : ₦500,000 (all cards on account combined)
+  Per-Transaction Max  : ₦200,000
+  PIN Required         : Always
+  OTP Required         : For amounts > ₦100,000
+  Contactless Limit    : ₦15,000 per tap; PIN required for ≥ ₦5,000
+  Contactless PIN Rule : Required after 5 consecutive contactless taps
+  Duplicate Detection  : Same terminal + similar amount (±5%) + within
+                         5 minutes → auto-reverse second charge
 
-**Fees**:
-  - Processing fee: 1% of amount (Minimum ₦5,000)
-  - SWIFT charges: $25 (approximately ₦37,500 at current rates)
-  - Cybersecurity Levy: 0.5%
+CHANNEL: web
+  Daily Limit          : ₦500,000
+  3D Secure            : Mandatory (Visa/Mastercard SecureCode)
+  Push Challenge       : Required for amounts > ₦100,000
+  Blocked Categories   : Adult content, cryptocurrency (requires approval),
+                         gambling (opt-in required)
 
-**Processing Time**: 1-3 business days (subject to FX liquidity)
+CHANNEL: branch
+  Daily Limit          : Per Tier limit (counter withdrawals)
+  ID Required          : Valid government-issued photo ID
+  Large Cash           : Amounts > ₦5,000,000 require 24-hour pre-notice
 
-**Limits**:
-  - PTA: $4,000 per quarter (3 months)
-  - BTA: $5,000 per quarter
-  - School fees: No limit (but documentation must be perfect)
-
-
-Visible Trade (Form M)
----------------------------------------------------------------------------
-**Purpose**: For importation of physical goods
-
-**Documentation Required**:
-  - Proforma invoice from supplier
-  - Import license (if applicable)
-  - SONCAP certificate (Standards Organisation of Nigeria)
-  - NAFDAC certificate (if food/drugs/cosmetics)
-  - Bill of Lading or Airway Bill
-  - Tax Clearance Certificate
-
-**Processing Time**: 3-7 business days (extensive documentation review)
-
-**Note**: This is complex. Most retail customers won't use Form M.
-         This is for businesses importing goods.
-
-
-=========================================================================
-SECTION 4: CARD TRANSACTION & SECURITY POLICIES
-=========================================================================
-
-POS (Point of Sale) Transactions
----------------------------------------------------------------------------
-**Daily Limit**: ₦500,000 (across all cards on account)
-**Per-transaction Limit**: ₦200,000
-**Security**:
-  - PIN required for all amounts
-  - OTP required for transactions >₦100,000
-**Declined Transaction**: Do NOT retry more than 3 times
-                          (triggers fraud alert)
-
-
-Online/Web Transactions
----------------------------------------------------------------------------
-**Daily Limit**: ₦500,000
-**Security**: 
-  - 3D Secure 2.0 MANDATORY (Visa/Mastercard SecureCode)
-  - Push-to-app authorization for transactions >₦100,000
-  - Device fingerprinting
-**Merchant Categories Blocked** (by default):
-  - Adult content
-  - Gambling/betting (can be enabled on request)
-  - Cryptocurrency exchanges (requires approval)
-
-
-ATM Transactions
----------------------------------------------------------------------------
-**Daily Withdrawal Limits**:
-  - Standard accounts: ₦100,000
-  - Premium accounts: ₦200,000
-**Fee Structure**:
-  - Own bank ATMs: First 3 withdrawals free, then ₦65 per withdrawal
-  - Other bank ATMs: ₦65 per withdrawal (no free transactions)
-**Note**: Limit is per CARD, not per account
-
-
-International Transactions
----------------------------------------------------------------------------
-**Default Status**: DISABLED (must be enabled per trip)
-**How to Enable**:
-  1. Log into mobile app
-  2. Go to Cards → Manage Card
-  3. Toggle "International Transactions" ON
-  4. Set travel dates (start and end)
-  5. Card auto-disables when you return
-
-**Monthly FX Limit**: $500 equivalent for personal cards
-**Processing**: 
-  - Debit in Naira at current exchange rate
-  - Rate: CBN rate + 3% markup (bank's margin)
-**Common Issues**:
-  - Declined due to insufficient Naira funds
-  - Declined due to monthly limit exceeded
-  - Declined because international toggle is OFF
-
-
-Contactless Payments (Tap & Pay)
----------------------------------------------------------------------------
-**Per-transaction Limit**: ₦15,000
-**PIN Required**: For amounts ≥₦5,000
-**No PIN**: For amounts <₦5,000 (just tap)
-**Security**: Each card has maximum of 5 consecutive contactless transactions
-             before PIN is required (resets after PIN entry)
+CHANNEL: nibss_transfer
+  Processing Time      : 2–5 minutes (normal), up to 2 hours (peak periods)
+  Peak Periods         : Month-end (25th–30th), Friday evenings
+  Maintenance Windows  : 2:00 AM – 6:00 AM WAT (announced in advance)
+  failure_reason codes : network_error, system_timeout, issuer_unavailable,
+                         invalid_account_number
 
 
 =========================================================================
-SECTION 5: REVERSAL POLICIES & "NOT POSSIBLE" SCENARIOS
+SECTION 5: REVERSAL POLICIES
 =========================================================================
 
-Automatic Reversals (No Customer Action Required)
----------------------------------------------------------------------------
+AUTOMATIC REVERSALS (No customer action required):
 
-Failed Internal Transfers
-  - Timeline: Within 24 hours (usually within 2 hours)
-  - Process: Automatic system reversal
-  - Notification: SMS + App notification
-  - Example: "Transfer to Chukwuma Okafor failed due to network error. 
-             ₦50,000 has been credited back to your account."
+  Internal Transfer Failure
+    Timeline    : Within 24 hours (usually within 2 hours)
+    Process     : Automatic system reversal
+    Notification: SMS + App push → "₦X credited back to your account."
 
-Failed NIP (Interbank) Transfers
-  - Timeline: 48-72 hours
-  - Process: Coordination with NIBSS required
-  - Notification: Status updates every 24 hours
-  - Reason for delay: Need confirmation from destination bank
+  NIP/Interbank Transfer Failure
+    Timeline    : 48–72 hours (NIBSS coordination required)
+    Process     : TSU initiates NIBSS trace and recall
+    Status Flow : failed/timeout → TSU investigation → reversal or credit
 
-Failed ATM Withdrawals (Dispense Errors)
-  - Timeline: Within 24 hours (after terminal reconciliation)
-  - Process: Bank reconciles terminal cash vs. transactions
-  - Notification: SMS confirmation
-  - Note: CRITICAL - Customer must report within 24 hours
+  ATM Dispense Error
+    Timeline    : Within 24 hours after terminal cash reconciliation
+    Process     : Terminal count vs. transaction log comparison
+    Notification: SMS → "ATM reversal: ₦X credited to your account."
 
+MANUAL REVERSAL REQUESTS (Customer must initiate via TSU):
 
-Manual Reversal Requests (Customer Must Request)
----------------------------------------------------------------------------
+  Eligible: Wrong account, duplicate transaction, amount error
+  Process : TSU investigates → contacts beneficiary bank → requests recall
+  Timeline: 2–14 days depending on beneficiary response
 
-**Eligible Scenarios**:
-1. Transfer to wrong account (customer's own error)
-2. Duplicate transaction (charged twice for same thing)
-3. Amount error (sent ₦100,000 instead of ₦10,000)
-
-**Process**:
-  Step 1: Customer logs complaint with Transaction Services Unit (TSU)
-  Step 2: Investigation (2-5 business days)
-          - Verify transaction was debited
-          - Confirm beneficiary details
-          - Check if beneficiary has received credit
-  Step 3: Contact beneficiary bank for refund request
-  Step 4: If beneficiary agrees: Credit applied to customer
-          If beneficiary refuses: Cannot force reversal (see below)
-
-**Important**: Bank cannot FORCE recipient to return funds.
-              Recovery depends on beneficiary cooperation.
-
-
-Reversal NOT POSSIBLE (Customer Bears Loss)
----------------------------------------------------------------------------
-
-The following reversals CANNOT be processed:
-
-1. **Beneficiary Bank Confirms Credit AND Withdrawal**
-   → Reason: Funds already withdrawn by recipient
-   → Action: Customer must pursue civil recovery (legal action)
-   → Example: Sent ₦500K to wrong account. Recipient withdrew same day.
-
-2. **Value Has Been Consummated**
-   → Reason: Service/product already delivered
-   → Examples:
-     * Airtime purchased (already loaded on phone)
-     * DSTV subscription paid (already activated)
-     * Utility bill paid (already posted to your account)
-   → Action: Cannot reverse. Contact merchant for refund directly.
-
-3. **Funds Liquidated/Transferred Out**
-   → Reason: Recipient moved money elsewhere
-   → Example: You sent to Account A. Account A owner sent to Account B.
-              Cannot reverse because money not in Account A anymore.
-
-4. **Request Made >60 Days After Transaction**
-   → Reason: Outside chargeback window
-   → Legal Basis: Card scheme rules (Visa/Mastercard)
-   → Action: Customer can pursue civil recovery
-
-5. **Transaction Marked as Fraudulent by Recipient**
-   → Reason: Recipient claims fraud, dispute is complex
-   → Action: Requires investigation by both banks + NIBSS
-   → Timeline: Can take 90+ days
+REVERSAL NOT POSSIBLE — CUSTOMER BEARS LOSS:
+  1. Beneficiary bank confirms credit AND withdrawal (funds withdrawn)
+  2. Value consummated (airtime loaded, bills paid, subscriptions activated)
+  3. Funds transferred onward by beneficiary (money not in original account)
+  4. Request made > 60 days after transaction (chargeback window expired)
 
 
 =========================================================================
-SECTION 6: DISPUTE RESOLUTION TIMELINE
+SECTION 6: FAILURE REASON CODES — AGENT INTERPRETATION GUIDE
 =========================================================================
 
-Standard Process for Transaction Disputes:
-
-
-DAY 0: Complaint Logged
----------------------------------------------------------------------------
-Actions:
-  - Unique ticket ID generated (format: DIS-YYYYMMDD-XXXX)
-  - NIBSS session ID captured (for interbank transactions)
-  - Immediate acknowledgement sent via SMS + Email
-  - Complaint recorded in CRM system
-
-Customer Receives:
-  "Your complaint has been logged. Ticket ID: DIS-20260217-1234. 
-   We will investigate and respond within 48 hours."
-
-
-DAY 1: Formal Acknowledgement & Assignment
----------------------------------------------------------------------------
-Actions:
-  - Email confirmation with full ticket details sent
-  - Expected timeline communicated (depends on issue type)
-  - Case assigned to specialist (based on complaint category)
-  - Priority level determined
-
-Customer Receives:
-  Email with:
-  - Ticket ID
-  - Assigned specialist name
-  - Expected resolution date
-  - Contact number for updates
-
-
-DAY 2-5: Investigation Phase
----------------------------------------------------------------------------
-Actions:
-  - Review transaction logs in core banking system
-  - Check NIBSS/Switch logs for inter-bank transactions
-  - Analyze error codes (e.g., 06=Declined, 91=Timeout, 96=System Error)
-  - Contact beneficiary bank (if inter-bank transfer)
-  - Request customer for additional information (if needed)
-
-Customer Updates:
-  - Status update every 48 hours
-  - SMS if additional info needed
-
-Common Error Codes:
-  - 00: Approved (successful)
-  - 06: Declined by issuer bank
-  - 51: Insufficient funds
-  - 91: Timeout (network issue)
-  - 96: System malfunction
-
-
-DAY 6-14: Resolution or Escalation
----------------------------------------------------------------------------
-
-For Simple Cases (90% of disputes):
-  - Root cause identified
-  - Resolution action taken (reversal, credit, explanation)
-  - Customer notified
-  - Ticket closed
-
-For Complex Cases (10% of disputes):
-  - Escalate to Level 2 (specialist review)
-  - May require legal review
-  - Timeline extended to 21 days
-  - Customer informed of delay with justification
-
-
-DAY 14-21: Final Resolution (Complex Inter-Bank Chargebacks)
----------------------------------------------------------------------------
-
-For Unresolved Inter-Bank Disputes:
-  - Formal chargeback request submitted to NIBSS
-  - Both banks present evidence
-  - NIBSS makes determination
-  - Final resolution applied
-
-For Merchant Disputes (Card Transactions):
-  - Follows Visa/Mastercard chargeback process
-  - Temporary credit may be issued during investigation
-  - Final determination can take 45-90 days
+failure_reason         → Meaning & Recommended Agent Action
+─────────────────────────────────────────────────────────────────────────
+none                   → No failure. Transaction successful.
+insufficient_fund      → Customer balance insufficient. Advise customer
+                         to top up and retry. No reversal needed.
+network_error          → NIBSS or switch connectivity issue. Auto-reversal
+                         expected. Route to TSU if not reversed in 2 hours.
+system_failure         → Core banking or middleware error. Escalate to TSU
+                         immediately. Check if account was debited.
+system_timeout         → Transaction timed out in switch. Outcome unknown.
+                         TREAT AS FAILED until confirmed. Route to TSU.
+invalid_account_number → Beneficiary account number does not exist or is
+                         inactive. No debit applied. Advise customer to
+                         verify account number and retry.
+daily_tx_limit_exceeded→ Customer has hit their KYC tier daily limit.
+                         Advise on limit and how to upgrade KYC tier.
+                         Route to AOD if customer wants to upgrade.
+compliance_restriction → Transaction blocked by AML/regulatory rule.
+                         Do not disclose specific rule to customer.
+                         Route to AOD or FRM depending on context.
+suspected_fraud        → Transaction blocked by fraud engine.
+                         is_fraud_score may be 1. Route to FRM always.
+issuer_unavailable     → Destination bank system unreachable.
+                         Auto-reversal expected within 24 hours.
+                         Route to TSU if not resolved in 24 hours.
 
 
 =========================================================================
-SECTION 7: INDUSTRY-STANDARD SERVICE CHARGES
+SECTION 7: SERVICE CHARGE SCHEDULE
 =========================================================================
 
-Interbank Transfers (NIP - NIBSS Instant Payment)
----------------------------------------------------------------------------
-  - Up to ₦5,000: ₦10.00
-  - ₦5,001 to ₦50,000: ₦25.00
-  - Above ₦50,000: ₦50.00
+Interbank NIP Transfers (nibss_transfer channel):
+  Amount ≤ ₦5,000           : ₦10.00
+  Amount ₦5,001 – ₦50,000   : ₦25.00
+  Amount > ₦50,000           : ₦50.00
+  First 3 per month (savings): FREE
 
-**Note**: First 3 NIP transfers per month are FREE for savings accounts
+Internal (Intra-Sentinel) Transfers:
+  Between own accounts       : FREE (unlimited)
+  To other Sentinel customers: FREE (unlimited)
 
-
-Internal Transfers (Within Sentinel Bank)
----------------------------------------------------------------------------
-  - Between own accounts: FREE (unlimited)
-  - To other Sentinel Bank customers: FREE (unlimited)
-
-
-USSD Banking Sessions
----------------------------------------------------------------------------
-  - Flat rate: ₦6.98 per session
-  - Includes: USSD airtime purchase, balance inquiry, transfers
-  - Shared between bank and telco (₦4 to telco, ₦2.98 to bank)
-
-
-SMS Transaction Alerts
----------------------------------------------------------------------------
-  - Rate: ₦4.00 per alert
-  - Frequency: For EVERY transaction (debit or credit)
-  - Mandatory: Cannot be opted out (CBN requirement for security)
-  - Monthly average: ₦120 (assuming 30 transactions/month)
-
-
-ATM Withdrawals
----------------------------------------------------------------------------
-**Own Bank ATMs**:
-  - First 3 withdrawals per month: FREE
-  - 4th withdrawal onwards: ₦65 per withdrawal
-
-**Other Bank ATMs**:
-  - All withdrawals: ₦65 per withdrawal
-  - (No free transactions at other banks)
-
-
-Account Maintenance Fees
----------------------------------------------------------------------------
-**Savings Account**:
-  - Monthly fee: ₦50
-  - Waived if: Maintain average monthly balance of ₦100,000
-
-**Current Account**:
-  - Monthly fee: ₦300
-  - Commission on Turnover (COT): ₦1 per ₦1,000 on third-party deposits
-  - (COT applies to business transactions only)
-
-**Domiciliary Account** (Dollar/Pound/Euro):
-  - Monthly fee: $5 (or equivalent)
-  - Waived if: Maintain balance of $1,000 or equivalent
-
-
-Other Fees
----------------------------------------------------------------------------
-  - Hardware Token: ₦3,500 (one-time fee)
-  - Card replacement: ₦1,500
-  - Cheque book: ₦500-₦2,000 (depending on number of leaves)
-  - Statement of account: ₦50 per month (via email, FREE in app)
-  - Reference letter: ₦1,000
-  - Account reactivation (after dormancy): ₦500
+SMS Transaction Alerts       : ₦4.00 per alert (mandatory per CBN)
+USSD Banking Sessions        : ₦6.98 per session
+ATM (own bank, 4th onwards)  : ₦65.00 per withdrawal
+ATM (other banks)            : ₦65.00 per withdrawal
+Account Maintenance (savings): ₦50/month (waived if balance ≥ ₦100,000)
+Account Maintenance (current): ₦300/month + ₦1/₦1,000 COT (business)
+Card Replacement              : ₦1,500
+Statement (> 90 days, email) : ₦50 per month
+Account Reactivation (dormant): ₦500
 
 
 =========================================================================
 DOCUMENT CONTROL
 =========================================================================
 
-**Policy Owner**: Head of Transaction Services
-**Approver**: Chief Operations Officer (COO)
-**Review Frequency**: Quarterly
-**Last Updated**: February 2026
-**Next Review**: May 2026
-
-**Contact for Questions**:
-  - Email: transactionservices@sentinelbank.ng
-  - Phone: +234-1-SENTINEL (Internal: Extension 4000)
+Policy Owner   : Head of Transaction Services
+Approver       : Chief Operations Officer (COO)
+Last Updated   : February 2026
+Contact        : transactionservices@sentinelbank.ng | Ext. 4000
 
 
 =========================================================================

@@ -1,0 +1,380 @@
+=========================================================================
+Sentinel Bank Nigeria - PRODUCT RECOMMENDATION POLICY
+=========================================================================
+
+Document Code       : PRS-001
+Classification      : Internal — Trajectory Agent Operational Reference
+Version             : 1.0
+Effective Date      : January 2026
+Review Frequency    : Quarterly
+
+Document Owner      : Head of Retail Banking Products
+Companion Documents : TSU-POL-002 (Transaction Policies),
+                      POL-CCH-001 (Complaint Handling Policy)
+
+USAGE BY TRAJECTORY AGENT:
+  This document defines the EXACT eligibility criteria for each product
+  recommendation in the Sentinel Bank dataset. The Trajectory Agent uses
+  this policy to:
+    1. Validate whether a recommended_product field in transactions.csv
+       is correctly assigned.
+    2. Generate product offers for customers who do not yet have a
+       recommendation but meet eligibility criteria.
+    3. Produce explainable, policy-grounded reasons for every recommendation.
+
+FIELD REFERENCE FROM TRANSACTIONS.CSV:
+  recommended_product     : "Car Loan" | "Personal Loan" | "Investment Plan" | None
+  salary_detected         : True | False
+  car_loan_signal_score   : float, range 0.0 – 1.0
+  amount                  : float (individual transaction amount in NGN)
+  merchant_name           : string (e.g., "Uber", "Bolt", "Paystack")
+  merchant_category       : string (e.g., "transport", "fintech")
+
+FIELDS FROM CUSTOMERS.CSV AND ACCOUNTS.CSV (JOINED BY AGENT):
+  age                     : integer (18–70 in dataset)
+  account_type            : "savings" | "solo" | "current"
+  monthly_inflow          : computed from monthly_inflow_tracker[customer_id]
+                            = sum of all credit transaction amounts per customer
+
+
+=========================================================================
+SECTION 1: PRODUCT ELIGIBILITY CRITERIA
+=========================================================================
+
+──────────────────────────────────────────────────────────────────────────
+PRODUCT: Car Loan
+──────────────────────────────────────────────────────────────────────────
+Recommended When  : recommended_product = "Car Loan" in dataset
+Policy Trigger    : car_loan_signal_score >= 0.7
+
+SIGNAL SCORE COMPOSITION (EXACT FORMULA FROM DATA GENERATOR):
+  Component 1 — Transport Usage Signal:
+    Condition  : uber_tracker[customer_id] >= 6
+                 (6 or more transactions where merchant_name is
+                  "Uber", "Bolt", or "LagRide" in last 90 days)
+    Score Add  : +0.4 to car_loan_signal_score
+    Rationale  : Frequent ride-hailing usage signals lack of personal
+                 vehicle, strong latent demand, and ability to budget
+                 for regular transport costs (which would convert to
+                 loan repayments).
+
+  Component 2 — Salary Detection Signal:
+    Condition  : salary_detected = True
+                 (salary_tracker[customer_id] >= 2, meaning at least
+                  2 credit transactions > ₦200,000 from merchant_category
+                  = "fintech" exist on this account)
+    Score Add  : +0.3 to car_loan_signal_score
+    Rationale  : Regular salary income indicates stable repayment
+                 capacity. Two or more large fintech credits is the
+                 proxy for salary/payroll in this dataset.
+
+  Component 3 — Monthly Inflow Signal:
+    Condition  : monthly_inflow_tracker[customer_id] > 500,000
+                 (cumulative credit amount across all transactions
+                  for this customer exceeds ₦500,000)
+    Score Add  : +0.3 to car_loan_signal_score
+    Rationale  : High monthly cash inflow indicates financial capacity
+                 to service a car loan without cash flow distress.
+
+MINIMUM SIGNAL SCORE THRESHOLD:
+  car_loan_signal_score >= 0.7 → ELIGIBLE for Car Loan recommendation
+  car_loan_signal_score  < 0.7 → NOT ELIGIBLE (check other products)
+
+EXAMPLE COMBINATIONS THAT REACH THRESHOLD:
+  Uber ≥ 6 + Salary Detected        → 0.4 + 0.3 = 0.7 ✓ ELIGIBLE
+  Uber ≥ 6 + Inflow > ₦500K         → 0.4 + 0.3 = 0.7 ✓ ELIGIBLE
+  Salary Detected + Inflow > ₦500K  → 0.3 + 0.3 = 0.6 ✗ NOT ELIGIBLE
+  All three signals present          → 0.4 + 0.3 + 0.3 = 1.0 ✓ STRONGLY ELIGIBLE
+
+AGENT VALIDATION QUERY:
+  "What is the eligibility criteria for Car Loan?"
+  Expected response: Signal score >= 0.7, composed of Uber (0.4),
+  salary detection (0.3), and/or monthly inflow > ₦500,000 (0.3).
+
+ADDITIONAL POLICY REQUIREMENTS (For Human Credit Officers):
+  - Account age        : Minimum 12 months with Sentinel Bank Nigeria
+  - Credit history     : No active loan defaults
+  - KYC tier           : Tier 2 or Tier 3 minimum
+  - Minimum age        : 21 years (from customers.csv age field)
+  - Maximum age        : 60 years at loan maturity
+
+──────────────────────────────────────────────────────────────────────────
+PRODUCT: Personal Loan
+──────────────────────────────────────────────────────────────────────────
+Recommended When  : recommended_product = "Personal Loan" in dataset
+Policy Trigger    : salary_detected = True
+                    AND monthly_inflow_tracker[customer_id] > 300,000
+
+DATASET LOGIC (EXACT FROM DATA GENERATOR):
+  Personal Loan is the FALLBACK recommendation when:
+    - salary_detected = True (salary_tracker >= 2, credits > ₦200,000 from fintech)
+    - monthly_inflow > ₦300,000
+    - BUT car_loan_signal_score < 0.7 (not eligible for Car Loan)
+  In other words: the customer has stable income but insufficient
+  transport/inflow signals to qualify for the higher-value Car Loan.
+
+ELIGIBILITY CRITERIA:
+  Primary Signals:
+    salary_detected          = True (mandatory — no salary, no personal loan)
+    monthly_inflow           > ₦300,000
+
+  Disqualifying Conditions:
+    car_loan_signal_score    >= 0.7 → recommend Car Loan instead
+    monthly_inflow           > ₦2,000,000 → recommend Investment Plan instead
+
+  Context: In the dataset, once monthly_inflow > ₦2,000,000, the
+  Investment Plan trigger fires first. The Personal Loan applies in
+  the ₦300,000 – ₦2,000,000 monthly inflow band.
+
+ADDITIONAL POLICY REQUIREMENTS (For Human Credit Officers):
+  - Account type       : Tier 2 or Tier 3 (savings with BVN + NIN minimum)
+  - Debt-to-income     : DTI ratio < 40% (outstanding commitments vs income)
+  - KYC tier           : Tier 2 minimum (BVN + NIN required)
+  - Minimum age        : 21 years
+  - Maximum loan       : ₦5,000,000 (routed to CLS for formal assessment)
+
+AGENT VALIDATION QUERY:
+  "What are the eligibility criteria for Personal Loan?"
+  Expected: salary_detected=True AND monthly_inflow > ₦300,000 AND
+  car_loan_signal_score < 0.7.
+
+──────────────────────────────────────────────────────────────────────────
+PRODUCT: Investment Plan
+──────────────────────────────────────────────────────────────────────────
+Recommended When  : recommended_product = "Investment Plan" in dataset
+Policy Trigger    : monthly_inflow_tracker[customer_id] > 2,000,000
+
+DATASET LOGIC (EXACT FROM DATA GENERATOR):
+  Investment Plan fires when monthly_inflow > ₦2,000,000 regardless of
+  salary_detected or car_loan_signal_score. It is the HIGHEST-TIER product
+  in the recommendation hierarchy. This threshold captures customers
+  with high net cash inflow who have the financial slack to invest
+  rather than borrow.
+
+ELIGIBILITY CRITERIA:
+  Primary Signal:
+    monthly_inflow           > ₦2,000,000 (cumulative credit amount)
+
+  Supporting Signals (for prioritization, not blocking):
+    Account type             : "current" (Tier 3) — highest eligibility
+    Age range                : 25–60 preferred (wealth accumulation phase)
+    Balance pattern          : Consistently high balance (> ₦5,000,000
+                               average across last 90 days)
+    Spending pattern         : Low outflow ratio vs. inflow (savings behavior)
+
+  Note: In the dataset generator, Investment Plan can be recommended
+  even alongside Car Loan or Personal Loan signals if monthly_inflow
+  exceeds ₦2,000,000. The Trajectory Agent should prioritize presenting
+  Investment Plan first to high-inflow customers.
+
+AVAILABLE INVESTMENT PRODUCTS:
+  - Fixed Deposit (30, 60, 90, 180, 365-day tenors)
+  - Treasury Bill participation (via Sentinel Bank Nigeria treasury desk)
+  - Mutual Fund (money market, equity, balanced)
+  - Dollar Fixed Deposit (domiciliary account required)
+
+ADDITIONAL POLICY REQUIREMENTS (For Relationship Managers):
+  - KYC tier           : Tier 3 required (full KYC, current account preferred)
+  - Minimum investment : ₦500,000 (Fixed Deposit), ₦100,000 (Mutual Fund)
+  - NDIC coverage      : Fixed deposits covered up to ₦5,000,000
+
+
+=========================================================================
+SECTION 2: RECOMMENDATION HIERARCHY & PRIORITY
+=========================================================================
+
+When a customer qualifies for multiple products simultaneously, use this
+priority order for the Trajectory Agent's primary recommendation:
+
+  PRIORITY 1: Investment Plan  (monthly_inflow > ₦2,000,000)
+              → Customer has high liquidity; invest first, borrow later.
+
+  PRIORITY 2: Car Loan         (car_loan_signal_score >= 0.7)
+              → Strong income + transport signals. High conversion rate.
+
+  PRIORITY 3: Personal Loan    (salary_detected + inflow > ₦300K)
+              → Stable income but insufficient signals for Car Loan.
+
+  PRIORITY 4: No Recommendation (recommended_product = None)
+              → Customer does not yet meet any threshold.
+              → Trajectory Agent should note which signals are closest
+                to threshold and suggest account behaviors to qualify.
+
+RECOMMENDATION REASONING TEMPLATE (for Trajectory Agent output):
+  "Based on Sentinel Bank Nigeria Product Recommendation Policy PRS-001,
+   [Customer Name] is recommended for [Product] because:
+   - salary_detected = [True/False] (salary_tracker threshold: 2 credits > ₦200,000)
+   - monthly_inflow = ₦[X] (threshold: ₦[Y])
+   - car_loan_signal_score = [X] (threshold: 0.7)
+   - uber_tracker = [X] trips (threshold: 6 trips)
+   This meets [met_criteria]. Unmet criteria: [unmet_criteria]."
+
+
+=========================================================================
+SECTION 3: SALARY DETECTION METHODOLOGY
+=========================================================================
+
+The salary_detected field is a derived boolean based on salary_tracker.
+The Trajectory Agent must understand exactly how it is computed to
+correctly validate or explain recommendations.
+
+SALARY DETECTION RULE:
+  salary_detected = True
+  IF: COUNT of credit transactions WHERE:
+        amount > ₦200,000
+        AND merchant_category = "fintech"
+        (Paystack, Flutterwave, Interswitch, Remita, Monnify)
+      >= 2 transactions on this customer's accounts
+
+REASONING:
+  In Nigeria, most corporate salary payments are routed via payroll
+  systems built on fintech infrastructure (Paystack Payroll, Remita).
+  Two or more large credits (> ₦200,000) from fintech channels is a
+  robust proxy for regular salaried employment.
+
+COMMON SALARY MERCHANTS IN DATASET:
+  Paystack      : Widely used by SMEs and startups for payroll
+  Remita        : Primary platform for government salary payments (IPPIS)
+  Flutterwave   : Used by mid-size and large corporations
+  Interswitch   : Legacy enterprise payroll routing
+  Monnify       : Growing startup and SME payroll platform
+
+EDGE CASES FOR AGENT AWARENESS:
+  - Freelancers may receive large fintech credits but irregularly.
+    salary_detected may be True for freelancers with multiple clients.
+  - Business owners may receive large fintech credits as business revenue.
+    Trajectory Agent should cross-check account_type = "current" which
+    suggests a business context → Investment Plan more appropriate.
+  - Salary_detected = False does NOT mean no income.
+    It means the salary pattern was not detected within the transaction
+    sample. Other income forms (cash, branch deposits) are not captured.
+
+
+=========================================================================
+SECTION 4: MONTHLY INFLOW CALCULATION
+=========================================================================
+
+monthly_inflow_tracker[customer_id] is the CUMULATIVE sum of all CREDIT
+transaction amounts across all accounts linked to this customer_id.
+
+CALCULATION (from data_generator.py):
+  FOR EACH transaction:
+    IF transaction_type = "credit":
+      monthly_inflow_tracker[customer_id] += transaction.amount
+
+THRESHOLDS USED IN PRODUCT RULES:
+  > ₦300,000  → Personal Loan minimum threshold
+  > ₦500,000  → Car Loan inflow signal threshold (+0.3 to signal score)
+  > ₦2,000,000 → Investment Plan threshold
+
+AGENT GUIDANCE — INFLOW INTERPRETATION:
+  ₦0 – ₦300,000        → Low inflow. No product recommendation triggered.
+                          Suggest account upgrade and salary routing.
+  ₦300,001 – ₦500,000  → Personal Loan eligible IF salary_detected = True.
+                          Car Loan NOT yet eligible (inflow signal missing).
+  ₦500,001 – ₦2,000,000 → Car Loan eligible IF uber_tracker >= 6 OR
+                            salary_detected = True (reaching score 0.7).
+                            Personal Loan also eligible.
+  > ₦2,000,000          → Investment Plan recommended as primary product.
+                           Car Loan and Personal Loan remain secondary offers.
+
+
+=========================================================================
+SECTION 5: CROSS-DATASET VALIDATION QUERIES
+=========================================================================
+
+The Trajectory Agent uses this section to validate recommendations
+against the full customer profile across all four datasets.
+
+VALIDATION QUERY 1 — Car Loan:
+  Required Data : customers.csv (age), accounts.csv (account_type),
+                  transactions.csv (car_loan_signal_score, salary_detected,
+                  merchant_name, monthly_inflow)
+  Pass Condition: age >= 21 AND account_type IN ['savings','current']
+                  AND car_loan_signal_score >= 0.7
+  Fail Reason   : List which of the three signal components are missing
+                  and what behavior would trigger them.
+
+VALIDATION QUERY 2 — Personal Loan:
+  Required Data : transactions.csv (salary_detected, monthly_inflow)
+  Pass Condition: salary_detected = True AND monthly_inflow > 300000
+  Fail Reason   : If salary_detected = False → "No consistent salary
+                  credit detected. Customer needs 2+ fintech credits
+                  > ₦200,000 to qualify."
+
+VALIDATION QUERY 3 — Investment Plan:
+  Required Data : transactions.csv (monthly_inflow),
+                  accounts.csv (account_type, current_balance)
+  Pass Condition: monthly_inflow > 2,000,000
+  Enhancement   : If current_balance > 5,000,000 consistently →
+                  recommend premium investment tier.
+
+COMPLAINTS INTEGRATION (via complaints.csv):
+  The Trajectory Agent must check complaints_df before making
+  recommendations. If a customer has open fraud complaints
+  (fraud_related = 1, complaint_status = "open" or "escalated"):
+    → DO NOT make product recommendations until complaints resolved.
+    → Flag account for FRM review first.
+  If a customer has SLA breach complaints (sla_breach_flag = 1):
+    → Note service quality issue in recommendation report.
+    → Route service quality concern to AOD or the breaching department.
+
+
+=========================================================================
+SECTION 6: SAMPLE OUTPUT FORMAT FOR TRAJECTORY AGENT
+=========================================================================
+
+The Trajectory Agent should produce recommendations in this format
+for every customer analysed, citing this policy document:
+
+PRODUCT RECOMMENDATION REPORT
+──────────────────────────────────────────────────────────────────────────
+Customer        : [Full Name] | ID: [customer_id]
+Account Type    : [savings / solo / current]
+Age             : [X] years
+
+ELIGIBILITY ASSESSMENT (per PRS-001):
+  salary_detected          : [True / False]
+  car_loan_signal_score    : [X.X] / 1.0
+  uber_tracker             : [X] transport transactions
+  monthly_inflow           : ₦[X,XXX,XXX]
+
+RECOMMENDATION:
+  Primary Product          : [Car Loan / Personal Loan / Investment Plan / None]
+  Confidence               : [High / Medium / Low]
+  Policy Basis             : PRS-001, Section [X]
+
+CRITERIA MET:
+  ✓ [List each criterion met with actual vs. threshold value]
+
+CRITERIA UNMET:
+  ✗ [List each criterion not met with gap to threshold]
+
+NEXT BEST ACTION:
+  [Specific, actionable advice for what the customer can do to qualify
+   for the next product tier — e.g., "Route salary payments via Remita
+   to trigger salary_detected = True within 2 months."]
+
+COMPLIANCE FLAGS:
+  Active Fraud Complaints  : [Yes / No]
+  SLA Breaches on Account  : [X] breaches in last 90 days
+  Recommended Action       : [Proceed / Hold pending FRM clearance]
+
+Policy Reference           : Sentinel Bank Nigeria PRS-001 v1.0 (February 2026)
+──────────────────────────────────────────────────────────────────────────
+
+
+=========================================================================
+DOCUMENT CONTROL
+=========================================================================
+
+Policy Owner    : Head of Retail Banking Products
+Approver        : Chief Retail Banking Officer
+Review Cycle    : Quarterly (thresholds reviewed against product performance)
+Last Updated    : February 2026
+Contact         : retailproducts@sentinelbank.ng | Ext. 6000
+
+
+=========================================================================
+END OF DOCUMENT PRS-001
+=========================================================================
