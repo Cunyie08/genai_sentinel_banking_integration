@@ -1,4 +1,4 @@
-# This file contains LLM acting as a Judge to evaluate the result (Who deiced if the AI did well)
+# This file contains LLM acting as a Judge to evaluate the result (Who decided if the AI did well)
 
 """
 This contains an evaluation interface with the llm acting as a judge 

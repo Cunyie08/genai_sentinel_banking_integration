@@ -57,11 +57,11 @@ class Orchestrator:
         # To handle failure
         if next_agent is None:
             return {
-                "error": "No valid agent foundgit ",
+                "error": "No valid agent found",
                 "dispatch_result": dispatch_result
             }
 
-        # Execute the selcted agent
+        # Execute the selected agent
         final_agent = next_agent.run(dispatch_result)
 
         return final_agent

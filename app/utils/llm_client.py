@@ -10,7 +10,7 @@ class LLMClient:
         
         self.model_name = model_name
     
-# Genrate a response from the LLM
+# Generate a response from the LLM
 
     def generate(self, system_prompt: str, user_input: str) -> Dict[str,Any]: # Placeholder till the API call is plugged in
 

@@ -2,7 +2,7 @@
 
 
 """
-Defining the evaliuation metrics for Sentinnel Banking
+Defining the evaluation metrics for Sentinnel Banking
 
 This file contains what is measured. 
 Actual computation is measured later.
